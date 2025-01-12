@@ -1,63 +1,10 @@
-import { 
-  SignedIn, 
-  SignedOut, 
-  RedirectToSignIn, 
-  SignIn, 
-  SignUp 
-} from '@clerk/clerk-react';
-import { useLocation } from 'react-router-dom';
-
-export function PublicRoute({ children }: { children: React.ReactNode }) {
-  return (
-    <SignedOut>
-      {children}
-    </SignedOut>
-  );
-}
-
-export function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const location = useLocation();
-
-  return (
-    <>
-      <SignedIn>
-        {children}
-      </SignedIn>
-      <SignedOut>
-        <RedirectToSignIn redirectUrl={location.pathname} />
-      </SignedOut>
-    </>
-  );
-}
+// You can delete this file or keep it for future use
+// If keeping, just remove the SignIn and SignUp functions
 
 export function SignInPage() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <SignIn 
-        appearance={{
-          elements: {
-            rootBox: "mx-auto w-full max-w-md",
-            card: "rounded-xl shadow-lg",
-          }
-        }}
-        redirectUrl="/workspace"
-      />
-    </div>
-  );
+  return null; // Or remove this function entirely
 }
 
 export function SignUpPage() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <SignUp
-        appearance={{
-          elements: {
-            rootBox: "mx-auto w-full max-w-md",
-            card: "rounded-xl shadow-lg",
-          }
-        }}
-        redirectUrl="/create-project"
-      />
-    </div>
-  );
+  return null; // Or remove this function entirely
 } 

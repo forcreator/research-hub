@@ -1,97 +1,99 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useStore } from '../store/useStore';
-import { FolderPlus } from 'lucide-react';
-
-const SCIENTIFIC_FIELDS = [
-  'Biology',
-  'Chemistry',
-  'Physics',
-  'Computer Science',
-  'Mathematics',
-  'Medicine',
-  'Psychology',
-  'Environmental Science',
-  'Other'
-] as const;
 
 export const CreateProject: React.FC = () => {
-  const [name, setName] = React.useState('');
-      // Start of Selection
-      const [field, setField] = React.useState<typeof SCIENTIFIC_FIELDS[number]>(SCIENTIFIC_FIELDS[0]);
-      const navigate = useNavigate();
-      const setCurrentProject = useStore((state) => state.setCurrentProject);
-      const user = useStore((state) => state.user);
-    
-      const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-    if (name.trim() && user) {
-      setCurrentProject({
-        id: crypto.randomUUID(),
-        name: name.trim(),
-        field,
-        createdAt: new Date(),
-        userId: user.id
-      });
-      navigate('/workspace');
-    }
+  const navigate = useNavigate();
+  const [name, setName] = useState('');
+  const [field, setField] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate('/workspace');
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-xl"
-      >
-        <div className="text-center mb-8">
-          <FolderPlus className="w-12 h-12 mx-auto mb-4 text-blue-600 dark:text-blue-400" />
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Create New Project</h2>
-          <p className="text-gray-600 dark:text-gray-300 mt-2">Start your research journey</p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-indigo-100 via-white to-pink-100 p-6">
+      <div className="relative w-full max-w-lg p-8 bg-white rounded-xl shadow-xl overflow-hidden">
+        {/* Background Image */}
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              'url(https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjUyOXwwfDF8c2VhcmNofDF8fHByb2plY3R8ZW58MHx8fHwxNjYyMjY0NzY0&ixlib=rb-1.2.1&q=80&w=400)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            filter: 'blur(10px) brightness(0.6)',
+            zIndex: '-1',
+          }}
+        ></div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        {/* Form Container */}
+        <form onSubmit={handleSubmit} className="relative z-10">
+          <h2 className="text-4xl font-extrabold text-gray-800 mb-6 text-center">
+            Start Your New Project
+          </h2>
+          <p className="text-gray-600 text-center mb-6">
+            Define your project details to kickstart your workspace.
+          </p>
+
+          {/* Project Name */}
+          <div className="mb-6">
+            <label
+              htmlFor="project-name"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Project Name
             </label>
             <input
               type="text"
-              id="name"
+              id="project-name"
+              placeholder="Enter project name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-              placeholder="Enter project name"
+              className="w-full border border-gray-300 rounded-lg py-3 px-4 text-gray-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm transition duration-200"
               required
             />
           </div>
-          
-          <div>
-            <label htmlFor="field" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+
+          {/* Scientific Field */}
+          <div className="mb-6">
+            <label
+              htmlFor="field"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Scientific Field
             </label>
             <select
-                  // Start of Selection
-                  id="field"
-                  value={field}
-                  onChange={(e) => setField(e.target.value as "Biology" | "Chemistry" | "Physics" | "Computer Science" | "Mathematics" | "Medicine" | "Psychology" | "Environmental Science" | "Other")}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                >
-                  {SCIENTIFIC_FIELDS.map((field) => (
-                    <option key={field} value={field}>{field}</option>
-              ))}
+              id="field"
+              value={field}
+              onChange={(e) => setField(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg py-3 px-4 bg-white text-gray-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm transition duration-200"
+              required
+            >
+              <option value="">Select a field</option>
+              <option value="Biology">Biology</option>
+              <option value="Chemistry">Chemistry</option>
+              <option value="Physics">Physics</option>
+              <option value="Computer Science">Computer Science</option>
+              <option value="Mathematics">Mathematics</option>
+              <option value="Medicine">Medicine</option>
+              <option value="Psychology">Psychology</option>
+              <option value="Environmental Science">
+                Environmental Science
+              </option>
+              <option value="Other">Other</option>
             </select>
           </div>
 
+          {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+            className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-500 focus:ring-2 focus:ring-indigo-400 focus:outline-none shadow-md transition duration-300"
           >
-            Create Project and Enter Workspace
+            Create Project
           </button>
         </form>
-      </motion.div>
+      </div>
     </div>
   );
 };
