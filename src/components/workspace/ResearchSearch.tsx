@@ -8,6 +8,7 @@ interface Paper {
   abstract: string;
   url: string;
   pdfUrl?: string;
+  source: 'Semantic Scholar' | 'CrossRef';
   year: number;
 }
 
@@ -15,31 +16,81 @@ export function ResearchSearch() {
   const [query, setQuery] = useState('');
   const [papers, setPapers] = useState<Paper[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Function to fetch from Semantic Scholar API
+  const fetchSemanticScholar = async (query: string) => {
+    const response = await fetch(
+      `https://api.semanticscholar.org/graph/v1/paper/search?query=${encodeURIComponent(query)}&limit=5&fields=title,authors,abstract,url,openAccessPdf,year`
+    );
+    const data = await response.json();
+    return (data.data || []).map((paper: any) => ({
+      id: paper.paperId,
+      title: paper.title,
+      authors: paper.authors.map((author: any) => author.name),
+      abstract: paper.abstract,
+      url: paper.url,
+      pdfUrl: paper.openAccessPdf?.url || null,
+      source: 'Semantic Scholar',
+      year: paper.year,
+    }));
+  };
+
+  // Function to fetch from CrossRef API
+  const fetchCrossRef = async (query: string) => {
+    const response = await fetch(
+      `https://api.crossref.org/works?query=${encodeURIComponent(query)}&rows=10`
+    );
+    const data = await response.json();
+  
+    return (data.message.items || []).map((paper: any) => ({
+      id: paper.DOI, // DOI as the unique identifier
+      title: paper.title?.[0] || 'No Title Available',
+      authors: paper.author
+        ? paper.author.map((author: any) => `${author.given} ${author.family}`)
+        : ['Unknown Author'],
+      abstract: 'Abstract not available', // CrossRef doesn't provide abstracts
+      url: paper.URL || '',
+      pdfUrl: null, // CrossRef does not provide direct PDF links
+      year: paper.created?.['date-parts']?.[0]?.[0] || 'Unknown Year',
+      publisher: paper.publisher || 'Unknown Publisher',
+      journal: paper['container-title']?.[0] || 'Unknown Journal',
+      citationCount: paper['is-referenced-by-count'] || 0, // Citation count
+      source: 'CrossRef',
+    }));
+  };
+  
 
   useEffect(() => {
     const searchPapers = async () => {
-      if (!query.trim()) return;
-      
+      if (!query.trim()) {
+        setPapers([]);
+        return;
+      }
+
       setLoading(true);
+      setError(null);
       try {
-        const response = await fetch(
-          `https://api.semanticscholar.org/graph/v1/paper/search?query=${encodeURIComponent(query)}&limit=10&fields=title,authors,abstract,url,year,citationCount,openAccessPdf`
-        );
-        const data = await response.json();
-        setPapers(data.data || []);
-      } catch (error) {
-        console.error('Search error:', error);
+        const [semanticResults, crossRefResults] = await Promise.all([
+          fetchSemanticScholar(query),
+          fetchCrossRef(query),
+        ]);
+        setPapers([...semanticResults, ...crossRefResults]);
+      } catch (err) {
+        setError('Error fetching research papers. Please try again later.');
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
 
-    const timeoutId = setTimeout(searchPapers, 500);
+    const timeoutId = setTimeout(searchPapers, 500); // Debounce search
     return () => clearTimeout(timeoutId);
   }, [query]);
 
   return (
     <div className="h-full bg-white border-l flex flex-col">
+      {/* Search Input */}
       <div className="p-4 border-b">
         <h2 className="font-semibold mb-2">Research Papers</h2>
         <div className="relative">
@@ -54,11 +105,14 @@ export function ResearchSearch() {
         </div>
       </div>
 
+      {/* Results Section */}
       <div className="flex-1 overflow-auto p-4">
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
           </div>
+        ) : error ? (
+          <div className="text-center text-red-500">{error}</div>
         ) : papers.length > 0 ? (
           <div className="space-y-4">
             {papers.map((paper) => (
@@ -67,9 +121,10 @@ export function ResearchSearch() {
                   <div>
                     <h3 className="font-medium">{paper.title}</h3>
                     <p className="text-sm text-gray-600 mt-1">
-                      {paper.authors?.slice(0, 3).map(a => a).join(', ')}
+                      {paper.authors?.slice(0, 3).join(', ')}
                       {paper.authors?.length > 3 ? ' et al.' : ''}
                     </p>
+                    <p className="text-xs text-gray-400">{paper.source}</p>
                   </div>
                   <div className="flex gap-2">
                     {paper.pdfUrl && (
@@ -99,4 +154,4 @@ export function ResearchSearch() {
       </div>
     </div>
   );
-} 
+}
